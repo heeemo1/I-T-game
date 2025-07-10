@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8" />
+  <title>عرض لعبة الرقم المجهول</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background: linear-gradient(90deg, #2a5298, #1e3c72);
+      color: #fff;
+      text-align: center;
+      padding: 20px;
+      direction: rtl;
+    }
+    h1 {
+      margin-bottom: 15px;
+      font-size: 28px;
+      color: #ffd700;
+    }
+    h2 {
+      font-size: 24px;
+      margin-bottom: 15px;
+    }
+    #result {
+      font-size: 22px;
+      min-height: 40px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 8px;
+      padding: 10px;
+      margin-top: 20px;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎥 عرض لعبة الرقم المجهول</h1>
+  <h2>اللاعب الحالي: <span id="currentPlayer">بانتظار البداية</span></h2>
+  <div id="result"></div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  const socket = io();
+  const sessionId = window.location.pathname.split("/").pop();
+
+  socket.emit("joinSession", { sessionId, role: "viewer" });
+
+  socket.on("gameState", ({ currentPlayer }) => {
+    document.getElementById("currentPlayer").textContent = currentPlayer || "بانتظار البدء";
+  });
+
+  socket.on("result", (msg) => {
+    document.getElementById("result").textContent = msg;
+  });
+</script>
+</body>
+</html>
