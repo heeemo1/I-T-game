@@ -1,1 +1,68 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8" />
+  <title>تسجيل دخول الادمن</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #1e3c72;
+      background: linear-gradient(90deg, #1e3c72, #2a5298);
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      direction: rtl;
+    }
+    .login-box {
+      background: rgba(0,0,0,0.5);
+      padding: 30px;
+      border-radius: 8px;
+      text-align: center;
+      width: 300px;
+    }
+    input[type="password"] {
+      width: 90%;
+      padding: 10px;
+      margin: 15px 0;
+      border-radius: 5px;
+      border: none;
+      font-size: 16px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 5px;
+      border: none;
+      background-color: #ffd700;
+      color: #000;
+      cursor: pointer;
+    }
+    #errorMsg {
+      color: #ff6666;
+      margin-top: 10px;
+      height: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-box">
+    <h2>تسجيل دخول الادمن</h2>
+    <form method="POST" action="/login">
+      <input type="password" name="password" placeholder="أدخل كلمة السر" required />
+      <br />
+      <button type="submit">دخول</button>
+    </form>
+    <p id="errorMsg"></p>
+  </div>
 
+<script>
+  // إذا كان في خطأ كلمة سر تظهر رسالة تنبيه
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('error')) {
+    alert('كلمة السر غير صحيحة');
+  }
+</script>
+</body>
+</html>
