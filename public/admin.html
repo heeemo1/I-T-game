@@ -1,1 +1,154 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8" />
+  <title>تحكم لعبة الرقم المجهول</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background: linear-gradient(90deg, #1e3c72, #2a5298);
+      color: #fff;
+      text-align: center;
+      padding: 20px;
+      direction: rtl;
+    }
+    input, select, button {
+      padding: 10px;
+      margin: 8px;
+      font-size: 16px;
+      border-radius: 5px;
+      border: none;
+    }
+    #playerInputs input {
+      width: 250px;
+      margin: 5px 0;
+    }
+    #guess {
+      width: 150px;
+      text-align: center;
+    }
+    #result {
+      margin-top: 20px;
+      font-size: 22px;
+      font-weight: bold;
+      min-height: 40px;
+    }
+    #playersList {
+      margin: 20px 0;
+      font-size: 18px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 8px;
+      padding: 10px;
+      max-width: 400px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎮 تحكم لعبة الرقم المجهول</h1>
 
+  <label for="playerCount">اختر عدد اللاعبين:</label>
+  <select id="playerCount" onchange="createPlayerInputs()">
+    <option value="">اختر</option>
+    <option value="1">1</option>
+    <option value="2">2</option>
+    <option value="3">3</option>
+    <option value="4">4</option>
+    <option value="5">5</option>
+    <option value="6">6</option>
+    <option value="7">7</option>
+    <option value="8">8</option>
+    <option value="9">9</option>
+    <option value="10">10</option>
+  </select>
+
+  <div id="playerInputs"></div>
+
+  <button onclick="submitPlayers()">بدء اللعبة</button>
+
+  <div id="playersList"></div>
+
+  <h2>اللاعب الحالي: <span id="currentPlayer">لم تبدأ الجولة بعد</span></h2>
+
+  <input type="number" id="guess" placeholder="تخمين رقم بين 1 - 100" min="1" max="100" />
+  <button onclick="sendGuess()">إرسال التخمين</button>
+
+  <button onclick="startNewRound()">🔄 جولة جديدة</button>
+
+  <p id="result"></p>
+
+  <h3>رابط العرض فقط (انسخ وشارك):</h3>
+  <input id="viewLink" style="width: 90%;" readonly />
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  const socket = io();
+  const sessionId = "default-session";
+
+  socket.emit("joinSession", { sessionId, role: "admin" });
+  document.getElementById("viewLink").value = `${window.location.origin}/view/${sessionId}`;
+
+  function createPlayerInputs() {
+    const count = parseInt(document.getElementById("playerCount").value);
+    const container = document.getElementById("playerInputs");
+    container.innerHTML = "";
+    for(let i=1; i<=count; i++) {
+      container.innerHTML += `<input type="text" id="playerName${i}" placeholder="اسم اللاعب ${i}" /> <br>`;
+    }
+  }
+
+  function submitPlayers() {
+    const count = parseInt(document.getElementById("playerCount").value);
+    if(!count) {
+      alert("اختر عدد اللاعبين");
+      return;
+    }
+    const names = [];
+    for(let i=1; i<=count; i++) {
+      const val = document.getElementById("playerName" + i).value.trim();
+      if(!val) {
+        alert("يرجى إدخال أسماء جميع اللاعبين");
+        return;
+      }
+      names.push(val);
+    }
+    socket.emit("addPlayers", { sessionId, names });
+    document.getElementById("playersList").innerHTML = "اللاعبون: " + names.join(", ");
+    document.getElementById("result").textContent = "";
+  }
+
+  function sendGuess() {
+    const player = document.getElementById("currentPlayer").textContent;
+    const guessInput = document.getElementById("guess");
+    const guess = parseInt(guessInput.value);
+    if(!player || player === "لم تبدأ الجولة بعد") {
+      alert("لم تبدأ الجولة أو لا يوجد لاعب حالي");
+      return;
+    }
+    if(isNaN(guess) || guess < 1 || guess > 100) {
+      alert("ادخل رقم صحيح بين 1 و 100");
+      return;
+    }
+    socket.emit("guess", { sessionId, player, guess });
+    guessInput.value = "";
+  }
+
+  function startNewRound() {
+    socket.emit("startRound", { sessionId });
+  }
+
+  socket.on("gameState", ({ currentPlayer }) => {
+    document.getElementById("currentPlayer").textContent = currentPlayer || "بانتظار البدء";
+  });
+
+  socket.on("result", (msg) => {
+    document.getElementById("result").textContent = msg;
+  });
+
+  socket.on("errorMsg", (msg) => {
+    alert(msg);
+  });
+</script>
+</body>
+</html>
